@@ -5,6 +5,7 @@
 IRIS Zero is a local AI assistant built with React, TypeScript, and Ollama.
 
 ## Features
+
 - Local AI assistant
 - Voice assistant
 - Can run applications
@@ -12,6 +13,7 @@ IRIS Zero is a local AI assistant built with React, TypeScript, and Ollama.
 - Can perform various tasks
 
 ## Tech Stack
+
 - React
 - TypeScript
 - Tailwind CSS
@@ -24,3 +26,5 @@ IRIS Zero is a local AI assistant built with React, TypeScript, and Ollama.
 1. Clone the repository
 2. Run `npm install`
 3. Run `npm run dev`
+
+# Made with ❤️ by [201Harsh](https://github.com/201harsh)
