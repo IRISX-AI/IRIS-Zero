@@ -1,8 +1,11 @@
 import express from "express";
 import ViteExpress from "vite-express";
+import AIRouter from "./router/ai.route.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 4894;
+
+app.use("/ai", AIRouter);
 
 ViteExpress.listen(app, port, () => {
   console.clear();
