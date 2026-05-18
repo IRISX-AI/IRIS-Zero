@@ -1,7 +1,7 @@
 import { ChatOllama } from "@langchain/ollama";
 import { createAgent, HumanMessage } from "langchain";
 
-const irisAI = async ({ prompt }: { prompt: string }) => {
+const IrisAI = async ({ prompt }: { prompt: string }) => {
   const model = new ChatOllama({
     model: "qwen3:1.7b",
     temperature: 0,
@@ -22,4 +22,4 @@ const irisAI = async ({ prompt }: { prompt: string }) => {
   return Output;
 };
 
-irisAI({ prompt: "Who are you?" });
+export default IrisAI;
