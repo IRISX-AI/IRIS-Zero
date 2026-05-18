@@ -5,6 +5,9 @@ import AIRouter from "./router/ai.route.js";
 const app = express();
 const port = Number(process.env.PORT) || 4894;
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use("/ai", AIRouter);
 
 ViteExpress.listen(app, port, () => {
