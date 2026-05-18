@@ -3,7 +3,7 @@ import IrisAI from "../agent/iris-ai.js";
 
 const AIRouter = Router();
 
-AIRouter.post("/ask", async (req, res) => {
+AIRouter.post("/talk", async (req, res) => {
   const { prompt } = req.body;
   if (!prompt) {
     return res.status(400).json({ response: "Please provide a prompt." });
