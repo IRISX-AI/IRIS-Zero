@@ -1,36 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import gsap from "gsap";
-import {
-  Mic,
-  Settings,
-  Volume2,
-  VolumeX,
-  Activity,
-  Cpu,
-  Zap,
-  Brain,
-  CheckCircle2,
-  Loader2,
-  X,
-  Circle,
-  Square,
-  Wifi,
-  Terminal,
-  Sparkles,
-} from "lucide-react";
+import { Zap, Brain, CheckCircle2, Loader2, X, Circle } from "lucide-react";
 import {
   ExecutionTask,
   RecordingState,
   SystemStatus,
   VoiceState,
 } from "./types/type";
-
-// ─── 4. Right Panel (Execution Status) ───────────────────────────────
-
-// ─── 5. Dock (Voice Controls) ────────────────────────────────────────
-
-// ─── Main Application ────────────────────────────────────────────────
 
 const IRISZero: React.FC = () => {
   const [voiceState, setVoiceState] = useState<VoiceState>("idle");
