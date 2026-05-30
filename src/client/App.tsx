@@ -1,5 +1,11 @@
+import IRISZero from "./IrisZero";
+
 const App = () => {
-  return <div></div>;
+  return (
+    <>
+      <IRISZero />
+    </>
+  );
 };
 
 export default App;
