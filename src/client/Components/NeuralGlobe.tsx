@@ -204,7 +204,7 @@ export const NeuralSphere: React.FC<{ voiceState: VoiceState }> = ({
 export const GlobeAI: React.FC<{ voiceState: VoiceState }> = ({
   voiceState,
 }) => (
-  <div className="w-[400px] h-[400px] -mt-16 relative z-10">
+  <div className="w-100 h-100 -mt-16 relative z-10">
     <Canvas
       camera={{ position: [0, 0, 6], fov: 45 }}
       dpr={[1, 2]}
