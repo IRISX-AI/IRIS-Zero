@@ -61,7 +61,14 @@ const GlassCard: React.FC<{
     animate={{ opacity: 1, y: 0, scale: 1 }}
     exit={{ opacity: 0, y: -20, scale: 0.95 }}
     transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
-    className={`relative overflow-hidden backdrop-blur-2xl bg-white/[0.03] border border-white/[0.08] rounded-3xl ${glow ? "shadow-[0_0_60px_-15px_rgba(0,255,136,0.15)]" : "shadow-2xl shadow-black/40"} ${className}`}
+    className={`
+      relative overflow-hidden
+      backdrop-blur-2xl bg-white/[0.03]
+      border border-white/[0.08]
+      rounded-3xl
+      ${glow ? "shadow-[0_0_60px_-15px_rgba(0,255,136,0.15)]" : "shadow-2xl shadow-black/40"}
+      ${className}
+    `}
   >
     {glow && (
       <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#00ff88]/5 via-transparent to-transparent pointer-events-none" />
@@ -70,7 +77,7 @@ const GlassCard: React.FC<{
   </motion.div>
 );
 
-// ─── 1. GlobeAI Component ─────────────────────────────────────────────
+// ─── 1. GlobeAI Components ───────────────────────────────────────────
 
 const NeuralSphere: React.FC<{ voiceState: VoiceState }> = ({ voiceState }) => {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -83,16 +90,20 @@ const NeuralSphere: React.FC<{ voiceState: VoiceState }> = ({ voiceState }) => {
     const positions = new Float32Array(particleCount * 3);
     const speeds = new Float32Array(particleCount);
     const radii = new Float32Array(particleCount);
+
     for (let i = 0; i < particleCount; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
       const r = 1.8 + Math.random() * 1.5;
+
       positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
       positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       positions[i * 3 + 2] = r * Math.cos(phi);
+
       speeds[i] = 0.2 + Math.random() * 0.8;
       radii[i] = r;
     }
+
     return { positions, speeds, radii };
   }, []);
 
@@ -104,20 +115,37 @@ const NeuralSphere: React.FC<{ voiceState: VoiceState }> = ({ voiceState }) => {
         uColor: { value: new THREE.Color("#00ff88") },
       },
       vertexShader: `
-        varying vec3 vNormal; varying vec3 vPosition; uniform float uTime; uniform float uState;
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        uniform float uTime;
+        uniform float uState;
+
         void main() {
-          vNormal = normalize(normalMatrix * normal); vPosition = position; vec3 pos = position;
+          vNormal = normalize(normalMatrix * normal);
+          vPosition = position;
+
+          vec3 pos = position;
           float noise = sin(pos.x * 4.0 + uTime) * cos(pos.y * 4.0 + uTime) * sin(pos.z * 4.0 + uTime);
-          float displacement = noise * 0.05 * (1.0 + uState * 0.5); pos += normal * displacement;
+          float displacement = noise * 0.05 * (1.0 + uState * 0.5);
+          pos += normal * displacement;
+
           gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
         }
       `,
       fragmentShader: `
-        varying vec3 vNormal; varying vec3 vPosition; uniform float uTime; uniform vec3 uColor; uniform float uState;
+        varying vec3 vNormal;
+        varying vec3 vPosition;
+        uniform float uTime;
+        uniform vec3 uColor;
+        uniform float uState;
+
         void main() {
           float fresnel = pow(1.0 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 3.0);
           float pulse = 0.7 + 0.3 * sin(uTime * 2.0 + uState * 3.0);
-          vec3 color = uColor * (0.2 + fresnel * 0.8) * pulse; float alpha = 0.3 + fresnel * 0.4;
+
+          vec3 color = uColor * (0.2 + fresnel * 0.8) * pulse;
+          float alpha = 0.3 + fresnel * 0.4;
+
           gl_FragColor = vec4(color, alpha);
         }
       `,
@@ -145,6 +173,7 @@ const NeuralSphere: React.FC<{ voiceState: VoiceState }> = ({ voiceState }) => {
 
   useFrame((state) => {
     const time = state.clock.elapsedTime;
+
     sphereMaterial.uniforms.uTime.value = time;
     sphereMaterial.uniforms.uState.value = THREE.MathUtils.lerp(
       sphereMaterial.uniforms.uState.value,
@@ -197,8 +226,9 @@ const NeuralSphere: React.FC<{ voiceState: VoiceState }> = ({ voiceState }) => {
         0.1 + Math.sin(time * 1.5) * 0.05 * (voiceState === "speaking" ? 2 : 1);
     }
 
-    if (groupRef.current)
+    if (groupRef.current) {
       groupRef.current.position.y = Math.sin(time * 0.5) * 0.1;
+    }
   });
 
   return (
@@ -226,6 +256,7 @@ const NeuralSphere: React.FC<{ voiceState: VoiceState }> = ({ voiceState }) => {
             count={particleCount}
             array={particles.positions}
             itemSize={3}
+            args={[particles.positions, 3]}
           />
         </bufferGeometry>
         <pointsMaterial
@@ -245,26 +276,24 @@ const NeuralSphere: React.FC<{ voiceState: VoiceState }> = ({ voiceState }) => {
 };
 
 const GlobeAI: React.FC<{ voiceState: VoiceState }> = ({ voiceState }) => (
-  <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
-    <div className="w-[500px] h-[500px] -mt-16">
-      <Canvas
-        camera={{ position: [0, 0, 6], fov: 45 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: "transparent" }}
-      >
-        <NeuralSphere voiceState={voiceState} />
-      </Canvas>
-    </div>
+  <div className="w-[400px] h-[400px] -mt-16 relative z-10">
+    <Canvas
+      camera={{ position: [0, 0, 6], fov: 45 }}
+      dpr={[1, 2]}
+      gl={{ antialias: true, alpha: true }}
+      style={{ background: "transparent" }}
+    >
+      <NeuralSphere voiceState={voiceState} />
+    </Canvas>
   </div>
 );
 
-// ─── 2. Header Component ──────────────────────────────────────────────
+// ─── 2. Header Component ─────────────────────────────────────────────
 
-const Header: React.FC<{ voiceState: VoiceState; onSettings: () => void }> = ({
-  voiceState,
-  onSettings,
-}) => {
+const Header: React.FC<{
+  voiceState: VoiceState;
+  onSettings: () => void;
+}> = ({ voiceState, onSettings }) => {
   const stateConfig = {
     idle: { label: "Ready", color: "text-white/60", icon: Circle },
     listening: { label: "Listening", color: "text-[#00ff88]", icon: Mic },
@@ -272,6 +301,7 @@ const Header: React.FC<{ voiceState: VoiceState; onSettings: () => void }> = ({
     speaking: { label: "Speaking", color: "text-[#00ff88]", icon: Volume2 },
     ready: { label: "Ready", color: "text-white/60", icon: CheckCircle2 },
   };
+
   const config = stateConfig[voiceState];
   const StateIcon = config.icon;
 
@@ -280,9 +310,9 @@ const Header: React.FC<{ voiceState: VoiceState; onSettings: () => void }> = ({
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      className="absolute top-0 left-0 right-0 z-50 px-8 py-6 pointer-events-none"
+      className="absolute top-0 left-0 right-0 z-50 px-8 py-6"
     >
-      <div className="max-w-[1600px] mx-auto flex items-center justify-between pointer-events-auto">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-[#00ff88]/20 to-transparent border border-[#00ff88]/30 flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-[#00ff88]" />
@@ -293,7 +323,7 @@ const Header: React.FC<{ voiceState: VoiceState; onSettings: () => void }> = ({
               IRIS-ZERO
             </span>
             <span className="text-white/40 text-xs tracking-widest uppercase">
-              Local AI
+              Local AI Assistant
             </span>
           </div>
         </div>
@@ -312,6 +342,22 @@ const Header: React.FC<{ voiceState: VoiceState; onSettings: () => void }> = ({
           <span className={`text-sm font-medium ${config.color}`}>
             {config.label}
           </span>
+          {voiceState === "listening" && (
+            <div className="flex gap-0.5">
+              {[1, 2, 3].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-1 h-3 bg-[#00ff88] rounded-full"
+                  animate={{ height: [6, 16, 6] }}
+                  transition={{
+                    duration: 0.8,
+                    repeat: Infinity,
+                    delay: i * 0.15,
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
@@ -331,17 +377,22 @@ const Header: React.FC<{ voiceState: VoiceState; onSettings: () => void }> = ({
   );
 };
 
-// ─── 3. Left Panel Component (System Health & Transcription) ─────────
+// ─── 3. Left Panel (Health + Transcription) ──────────────────────────
 
 const LeftPanel: React.FC<{
   status: SystemStatus;
   transcript: string;
   isActive: boolean;
 }> = ({ status, transcript, isActive }) => {
+  const services = [
+    { label: "Ollama", active: status.ollama, icon: Brain },
+    { label: "TTS", active: status.tts, icon: Volume2 },
+  ];
   const words = transcript.split(" ");
+
   return (
-    <div className="absolute left-8 top-1/2 -translate-y-1/2 flex flex-col gap-6 z-40 w-[320px]">
-      <GlassCard delay={0.2}>
+    <div className="absolute left-8 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-4 w-80 pointer-events-none">
+      <GlassCard delay={0.2} className="w-full pointer-events-auto">
         <div className="p-5">
           <div className="flex items-center gap-2 mb-4">
             <Activity className="w-4 h-4 text-[#00ff88]/60" />
@@ -350,10 +401,7 @@ const LeftPanel: React.FC<{
             </span>
           </div>
           <div className="space-y-3">
-            {[
-              { label: "Ollama", active: status.ollama, icon: Brain },
-              { label: "TTS", active: status.tts, icon: Volume2 },
-            ].map((service) => (
+            {services.map((service) => (
               <div
                 key={service.label}
                 className="flex items-center justify-between"
@@ -364,7 +412,7 @@ const LeftPanel: React.FC<{
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div
-                    className={`w-2 h-2 rounded-full ${service.active ? "bg-[#00ff88] animate-pulse" : "bg-red-500"}`}
+                    className={`w-2 h-2 rounded-full ${service.active ? "bg-[#00ff88]" : "bg-red-500"} ${service.active ? "animate-pulse" : ""}`}
                   />
                   <span
                     className={`text-xs ${service.active ? "text-[#00ff88]/80" : "text-red-400/80"}`}
@@ -382,7 +430,7 @@ const LeftPanel: React.FC<{
             </div>
             <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-[#00ff88] rounded-full"
+                className="h-full bg-[#00ff88]"
                 initial={{ width: 0 }}
                 animate={{ width: `${status.cpuUsage}%` }}
                 transition={{ duration: 1 }}
@@ -396,7 +444,7 @@ const LeftPanel: React.FC<{
             </div>
             <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-[#00ff88]/70 rounded-full"
+                className="h-full bg-[#00ff88]/70"
                 initial={{ width: 0 }}
                 animate={{ width: `${status.memoryUsage}%` }}
                 transition={{ duration: 1 }}
@@ -406,54 +454,54 @@ const LeftPanel: React.FC<{
         </div>
       </GlassCard>
 
-      <AnimatePresence>
-        {(transcript || isActive) && (
-          <GlassCard glow={isActive} delay={0.3}>
-            <div className="p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <Terminal className="w-4 h-4 text-[#00ff88]/60" />
-                <span className="text-white/40 text-xs uppercase tracking-widest">
-                  Transcription
-                </span>
-              </div>
-              <div className="min-h-[4rem]">
-                <p className="text-white/90 text-sm leading-relaxed font-light">
-                  {words.map((word, i) => (
-                    <motion.span
-                      key={`${word}-${i}`}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: i * 0.05 }}
-                      className="inline-block mr-1.5"
-                    >
-                      {word}
-                    </motion.span>
-                  ))}
-                  {isActive && (
-                    <motion.span
-                      animate={{ opacity: [0, 1, 0] }}
-                      transition={{ duration: 0.8, repeat: Infinity }}
-                      className="inline-block w-0.5 h-4 bg-[#00ff88] ml-1 align-middle"
-                    />
-                  )}
-                </p>
-              </div>
-            </div>
-          </GlassCard>
-        )}
-      </AnimatePresence>
+      <GlassCard className="w-full pointer-events-auto" glow={isActive}>
+        <div className="p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Terminal className="w-4 h-4 text-[#00ff88]/60" />
+            <span className="text-white/40 text-xs uppercase tracking-widest">
+              Transcription
+            </span>
+          </div>
+          <div className="min-h-[3rem] flex items-center">
+            <p className="text-white/90 text-sm leading-relaxed font-light">
+              {transcript ? (
+                words.map((word, i) => (
+                  <motion.span
+                    key={`${word}-${i}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: i * 0.05 }}
+                    className="inline-block mr-1.5"
+                  >
+                    {word}
+                  </motion.span>
+                ))
+              ) : (
+                <span className="text-white/30 italic">Awaiting audio...</span>
+              )}
+              {isActive && (
+                <motion.span
+                  animate={{ opacity: [0, 1, 0] }}
+                  transition={{ duration: 0.8, repeat: Infinity }}
+                  className="inline-block w-0.5 h-4 bg-[#00ff88] ml-1 align-middle"
+                />
+              )}
+            </p>
+          </div>
+        </div>
+      </GlassCard>
     </div>
   );
 };
 
-// ─── 4. Right Panel Component (Execution Status) ─────────────────────
+// ─── 4. Right Panel (Execution Status) ───────────────────────────────
 
-const RightPanel: React.FC<{ currentTask: string; modelName: string }> = ({
-  currentTask,
-  modelName,
-}) => (
-  <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col gap-6 z-40 w-[280px]">
-    <GlassCard delay={0.3}>
+const RightPanel: React.FC<{
+  currentTask: string;
+  modelName: string;
+}> = ({ currentTask, modelName }) => (
+  <div className="absolute right-8 top-1/2 -translate-y-1/2 z-40 w-64 pointer-events-none">
+    <GlassCard delay={0.3} className="pointer-events-auto">
       <div className="p-5">
         <div className="flex items-center gap-2 mb-4">
           <Cpu className="w-4 h-4 text-[#00ff88]/60" />
@@ -491,32 +539,31 @@ const RightPanel: React.FC<{ currentTask: string; modelName: string }> = ({
   </div>
 );
 
-// ─── 5. Dock Component (Bottom Voice Controls) ───────────────────────
+// ─── 5. Dock (Voice Controls) ────────────────────────────────────────
 
 const Dock: React.FC<{
   recordingState: RecordingState;
   isMuted: boolean;
-  onMicToggle: () => void;
   onMuteToggle: () => void;
   onInterrupt: () => void;
+  onSettings: () => void;
   onHoldStart: () => void;
   onHoldEnd: () => void;
 }> = ({
   recordingState,
   isMuted,
-  onMicToggle,
   onMuteToggle,
   onInterrupt,
+  onSettings,
   onHoldStart,
   onHoldEnd,
 }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [isPressed, setIsPressed] = useState(false);
   const isRecording = recordingState === "recording";
   const isProcessing = recordingState === "processing";
 
   useEffect(() => {
-    if (buttonRef.current && isRecording)
+    if (buttonRef.current && isRecording) {
       gsap.to(buttonRef.current, {
         scale: 1.1,
         duration: 0.8,
@@ -524,7 +571,7 @@ const Dock: React.FC<{
         yoyo: true,
         repeat: -1,
       });
-    else if (buttonRef.current) {
+    } else if (buttonRef.current) {
       gsap.killTweensOf(buttonRef.current);
       gsap.to(buttonRef.current, {
         scale: 1,
@@ -534,90 +581,117 @@ const Dock: React.FC<{
     }
   }, [isRecording]);
 
-  const handlePointerDown = () => {
-    setIsPressed(true);
-    onHoldStart();
-  };
-  const handlePointerUp = () => {
-    if (isPressed) {
-      setIsPressed(false);
-      onHoldEnd();
-    }
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className="absolute bottom-16 left-1/2 -translate-x-1/2 z-50 flex items-center gap-6"
-    >
-      <div className="flex items-center gap-3">
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={onMuteToggle}
-          className={`p-3.5 rounded-2xl border transition-all duration-300 ${isMuted ? "bg-red-500/10 border-red-500/30 text-red-400" : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"}`}
-        >
-          {isMuted ? (
-            <VolumeX className="w-5 h-5" />
-          ) : (
-            <Volume2 className="w-5 h-5" />
-          )}
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={onInterrupt}
-          className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 transition-all duration-300"
-        >
-          <X className="w-5 h-5" />
-        </motion.button>
-      </div>
+    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="flex items-center gap-6"
+      >
+        <div className="flex items-center gap-3">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onMuteToggle}
+            className={`p-3.5 rounded-2xl border transition-all duration-300 ${isMuted ? "bg-red-500/10 border-red-500/30 text-red-400" : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"}`}
+          >
+            {isMuted ? (
+              <VolumeX className="w-5 h-5" />
+            ) : (
+              <Volume2 className="w-5 h-5" />
+            )}
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onInterrupt}
+            className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 transition-all duration-300"
+          >
+            <X className="w-5 h-5" />
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onSettings}
+            className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 transition-all duration-300"
+          >
+            <Settings className="w-5 h-5" />
+          </motion.button>
+        </div>
 
-      <div className="relative flex flex-col items-center gap-6">
-        {isRecording &&
-          [1, 2, 3].map((i) => (
-            <motion.div
-              key={i}
-              className="absolute inset-0 rounded-full border border-[#00ff88]/30 pointer-events-none"
-              initial={{ scale: 1, opacity: 0.5 }}
-              animate={{ scale: 2.5, opacity: 0 }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                delay: i * 0.6,
-                ease: "easeOut",
-              }}
-            />
-          ))}
-        <motion.button
-          ref={buttonRef}
-          onClick={onMicToggle}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          onPointerLeave={handlePointerUp}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className={`relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500 ${isRecording ? "bg-[#00ff88] shadow-[0_0_60px_rgba(0,255,136,0.4)]" : isProcessing ? "bg-white/10 border border-white/20" : "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#00ff88]/30"}`}
-        >
-          {isProcessing ? (
-            <Loader2 className="w-8 h-8 text-[#00ff88] animate-spin" />
-          ) : isRecording ? (
-            <Square className="w-8 h-8 text-[#050505] fill-current" />
-          ) : (
-            <Mic className="w-8 h-8 text-white/80" />
+        {/* Push-to-Talk Mic Button */}
+        <div className="relative flex flex-col items-center gap-6">
+          {isRecording && (
+            <>
+              {[1, 2, 3].map((i) => (
+                <motion.div
+                  key={i}
+                  className="absolute inset-0 rounded-full border border-[#00ff88]/30 pointer-events-none"
+                  initial={{ scale: 1, opacity: 0.5 }}
+                  animate={{ scale: 2.5, opacity: 0 }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: i * 0.6,
+                    ease: "easeOut",
+                  }}
+                />
+              ))}
+            </>
           )}
-          <div
-            className={`absolute inset-0 rounded-full transition-opacity duration-500 ${isRecording ? "opacity-100" : "opacity-0"} bg-gradient-to-br from-[#00ff88]/20 to-transparent blur-md`}
-          />
-        </motion.button>
-      </div>
-    </motion.div>
+
+          <motion.button
+            ref={buttonRef}
+            onPointerDown={(e) => {
+              // Prevent default touch behaviors that might interrupt the hold
+              e.preventDefault();
+              onHoldStart();
+            }}
+            onPointerUp={onHoldEnd}
+            onPointerLeave={onHoldEnd}
+            onContextMenu={(e) => e.preventDefault()} // Prevent right-click menu interrupting hold
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{ touchAction: "none" }} // Ensure touch devices don't scroll while holding
+            className={`
+              relative w-20 h-20 rounded-full flex items-center justify-center
+              transition-all duration-500 cursor-pointer
+              ${
+                isRecording
+                  ? "bg-[#00ff88] shadow-[0_0_60px_rgba(0,255,136,0.4)]"
+                  : isProcessing
+                    ? "bg-white/10 border border-white/20"
+                    : "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#00ff88]/30"
+              }
+            `}
+          >
+            {isProcessing ? (
+              <Loader2 className="w-8 h-8 text-[#00ff88] animate-spin" />
+            ) : isRecording ? (
+              <Square className="w-8 h-8 text-[#050505] fill-current" />
+            ) : (
+              <Mic className="w-8 h-8 text-white/80" />
+            )}
+            <div
+              className={`absolute inset-0 rounded-full transition-opacity duration-500 pointer-events-none ${isRecording ? "opacity-100" : "opacity-0"} bg-gradient-to-br from-[#00ff88]/20 to-transparent blur-md`}
+            />
+          </motion.button>
+
+          <span className="text-white/40 text-sm font-medium absolute -bottom-8 whitespace-nowrap">
+            {isRecording
+              ? "Listening..."
+              : isProcessing
+                ? "Processing..."
+                : "Hold to Talk"}
+          </span>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 
-// ─── 6. Main Application ─────────────────────────────────────────────
+// ─── Main Application ────────────────────────────────────────────────
 
 const IRISZero: React.FC = () => {
   const [voiceState, setVoiceState] = useState<VoiceState>("idle");
@@ -637,31 +711,28 @@ const IRISZero: React.FC = () => {
     memoryUsage: 42,
   });
 
-  const simulateVoiceInteraction = useCallback(async () => {
-    setVoiceState("listening");
-    setRecordingState("recording");
-    setTranscript("");
-    setResponse("");
-    setTasks([]);
+  // Simulated transcription stream
+  const simulateProcessing = useCallback(async () => {
     const words = "Create a Next.js project and install dependencies".split(
       " ",
     );
     for (let i = 0; i < words.length; i++) {
-      await new Promise((r) => setTimeout(r, 200));
+      await new Promise((r) => setTimeout(r, 150));
       setTranscript((prev) => prev + (prev ? " " : "") + words[i]);
     }
-    setRecordingState("processing");
-    setVoiceState("thinking");
-    await new Promise((r) => setTimeout(r, 1500));
+
+    await new Promise((r) => setTimeout(r, 1000));
     setVoiceState("speaking");
     setRecordingState("speaking");
     setCurrentTask("Project initialization");
+
     const responseWords =
       "Creating project... Installing dependencies... Ready.".split(" ");
     for (let i = 0; i < responseWords.length; i++) {
       await new Promise((r) => setTimeout(r, 150));
       setResponse((prev) => prev + (prev ? " " : "") + responseWords[i]);
     }
+
     setTasks([
       {
         id: "1",
@@ -677,6 +748,7 @@ const IRISZero: React.FC = () => {
       },
       { id: "3", label: "Configure Tailwind CSS", status: "pending" },
     ]);
+
     await new Promise((r) => setTimeout(r, 2000));
     setTasks((prev) =>
       prev.map((t) => ({ ...t, status: "completed" as const, progress: 100 })),
@@ -684,6 +756,7 @@ const IRISZero: React.FC = () => {
     setVoiceState("ready");
     setRecordingState("idle");
     setCurrentTask("Completed");
+
     await new Promise((r) => setTimeout(r, 3000));
     setVoiceState("idle");
     setTranscript("");
@@ -692,40 +765,35 @@ const IRISZero: React.FC = () => {
     setCurrentTask("");
   }, []);
 
-  const handleMicToggle = () => {
-    if (recordingState === "idle") simulateVoiceInteraction();
-    else {
-      setRecordingState("idle");
-      setVoiceState("idle");
-    }
-  };
+  // Strict Hold-to-Talk Handlers
   const handleHoldStart = () => {
-    if (recordingState === "idle") {
+    if (recordingState === "idle" || recordingState === "speaking") {
       setVoiceState("listening");
       setRecordingState("recording");
+      setTranscript("");
+      setResponse("");
+      setTasks([]);
     }
   };
+
   const handleHoldEnd = () => {
     if (recordingState === "recording") {
       setRecordingState("processing");
       setVoiceState("thinking");
-      setTimeout(() => {
-        setVoiceState("idle");
-        setRecordingState("idle");
-      }, 2000);
+      simulateProcessing();
     }
   };
 
   return (
     <div className="relative w-screen h-screen bg-[#050505] overflow-hidden font-sans selection:bg-[#00ff88]/30">
-      {/* Background Effects */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#00ff88]/5 rounded-full blur-[128px]" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#00cc6a]/5 rounded-full blur-[128px]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#00ff88]/3 rounded-full blur-[150px]" />
       </div>
+
       <div
-        className="absolute inset-0 opacity-[0.02]"
+        className="absolute inset-0 opacity-[0.02] pointer-events-none"
         style={{
           backgroundImage: `linear-gradient(rgba(0,255,136,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.3) 1px, transparent 1px)`,
           backgroundSize: "60px 60px",
@@ -736,20 +804,21 @@ const IRISZero: React.FC = () => {
         voiceState={voiceState}
         onSettings={() => setShowSettings(true)}
       />
-      <GlobeAI voiceState={voiceState} />
+
       <LeftPanel
         status={systemStatus}
         transcript={transcript}
         isActive={voiceState === "listening"}
       />
+
       <RightPanel
         currentTask={currentTask}
         modelName={systemStatus.modelName}
       />
+
       <Dock
         recordingState={recordingState}
         isMuted={isMuted}
-        onMicToggle={handleMicToggle}
         onMuteToggle={() => setIsMuted(!isMuted)}
         onInterrupt={() => {
           setVoiceState("idle");
@@ -757,78 +826,108 @@ const IRISZero: React.FC = () => {
           setTranscript("");
           setResponse("");
         }}
+        onSettings={() => setShowSettings(true)}
         onHoldStart={handleHoldStart}
         onHoldEnd={handleHoldEnd}
       />
 
-      {/* Central Response Card */}
-      <div className="absolute top-[65%] left-1/2 -translate-x-1/2 w-full max-w-xl z-30 pointer-events-none">
-        <AnimatePresence>
-          {response && (
-            <GlassCard glow>
-              <div className="p-6 pointer-events-auto">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <Brain className="w-4 h-4 text-[#00ff88]/60" />
-                  <span className="text-white/40 text-xs uppercase tracking-widest">
-                    Response
-                  </span>
-                </div>
-                <p className="text-white/80 text-center text-sm leading-relaxed font-light mb-4">
-                  {response}
-                </p>
-                {tasks.length > 0 && (
-                  <div className="space-y-2">
-                    {tasks.map((task) => (
-                      <motion.div
-                        key={task.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/5"
-                      >
-                        {task.status === "running" ? (
-                          <Loader2 className="w-4 h-4 text-[#00ff88] animate-spin" />
-                        ) : task.status === "completed" ? (
-                          <CheckCircle2 className="w-4 h-4 text-[#00ff88]" />
-                        ) : (
-                          <Circle className="w-4 h-4 text-white/30" />
-                        )}
-                        <span className="text-white/70 text-sm flex-1">
-                          {task.label}
-                        </span>
-                        {task.progress !== undefined && (
-                          <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
-                            <motion.div
-                              className="h-full bg-[#00ff88] rounded-full"
-                              initial={{ width: 0 }}
-                              animate={{ width: `${task.progress}%` }}
-                              transition={{ duration: 0.5 }}
-                            />
-                          </div>
-                        )}
-                      </motion.div>
-                    ))}
+      <div className="relative z-10 flex flex-col items-center justify-center h-full px-8 pointer-events-none">
+        <GlobeAI voiceState={voiceState} />
+
+        <div className="w-full max-w-2xl mt-4 z-30 pointer-events-auto">
+          <AnimatePresence mode="wait">
+            {response ? (
+              <GlassCard key="response-card" glow={!!response}>
+                <div className="px-8 py-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Brain className="w-4 h-4 text-[#00ff88]/60" />
+                    <span className="text-white/40 text-xs uppercase tracking-widest">
+                      Assistant Response
+                    </span>
                   </div>
-                )}
-              </div>
-            </GlassCard>
-          )}
-        </AnimatePresence>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <p className="text-white/80 text-base leading-relaxed font-light">
+                      {response}
+                    </p>
+                    {tasks && tasks.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        {tasks.map((task) => (
+                          <motion.div
+                            key={task.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/5"
+                          >
+                            {task.status === "running" ? (
+                              <Loader2 className="w-4 h-4 text-[#00ff88] animate-spin" />
+                            ) : task.status === "completed" ? (
+                              <CheckCircle2 className="w-4 h-4 text-[#00ff88]" />
+                            ) : (
+                              <Circle className="w-4 h-4 text-white/30" />
+                            )}
+                            <span className="text-white/70 text-sm flex-1">
+                              {task.label}
+                            </span>
+                            {task.progress !== undefined && (
+                              <div className="w-20 h-1 bg-white/10 rounded-full overflow-hidden">
+                                <motion.div
+                                  className="h-full bg-[#00ff88] rounded-full"
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${task.progress}%` }}
+                                  transition={{ duration: 0.5 }}
+                                />
+                              </div>
+                            )}
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                    {currentTask && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="mt-3 flex items-center gap-2 text-[#00ff88]/80 text-sm"
+                      >
+                        <Zap className="w-4 h-4" />
+                        {currentTask}
+                      </motion.div>
+                    )}
+                  </motion.div>
+                </div>
+              </GlassCard>
+            ) : (
+              <motion.div
+                key="empty-state"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-white/30 text-sm italic text-center"
+              >
+                Awaiting input...
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
-      {/* Settings Modal */}
       <AnimatePresence>
         {showSettings && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm"
             onClick={() => setShowSettings(false)}
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               onClick={(e) => e.stopPropagation()}
               className="w-full max-w-lg mx-4"
             >
@@ -840,13 +939,18 @@ const IRISZero: React.FC = () => {
                     </h2>
                     <button
                       onClick={() => setShowSettings(false)}
-                      className="p-2 rounded-lg hover:bg-white/10"
+                      className="p-2 rounded-lg hover:bg-white/10 transition-colors"
                     >
                       <X className="w-5 h-5 text-white/60" />
                     </button>
                   </div>
                   <div className="space-y-6">
                     {[
+                      {
+                        label: "Voice Activation",
+                        desc: "Enable wake word detection",
+                        enabled: true,
+                      },
                       {
                         label: "Local TTS",
                         desc: "Use local text-to-speech engine",
@@ -855,6 +959,11 @@ const IRISZero: React.FC = () => {
                       {
                         label: "Auto Execute",
                         desc: "Run commands without confirmation",
+                        enabled: false,
+                      },
+                      {
+                        label: "Debug Mode",
+                        desc: "Show technical details",
                         enabled: false,
                       },
                     ].map((setting) => (
@@ -871,14 +980,19 @@ const IRISZero: React.FC = () => {
                           </span>
                         </div>
                         <button
-                          className={`w-11 h-6 rounded-full relative ${setting.enabled ? "bg-[#00ff88]/30" : "bg-white/10"}`}
+                          className={`w-11 h-6 rounded-full transition-colors duration-300 relative ${setting.enabled ? "bg-[#00ff88]/30" : "bg-white/10"}`}
                         >
                           <div
-                            className={`absolute top-1 w-4 h-4 rounded-full transition-transform ${setting.enabled ? "left-6 bg-[#00ff88]" : "left-1 bg-white/40"}`}
+                            className={`absolute top-1 w-4 h-4 rounded-full transition-transform duration-300 ${setting.enabled ? "left-6 bg-[#00ff88]" : "left-1 bg-white/40"}`}
                           />
                         </button>
                       </div>
                     ))}
+                  </div>
+                  <div className="mt-8 pt-6 border-t border-white/10">
+                    <button className="w-full py-3 rounded-xl bg-[#00ff88]/10 border border-[#00ff88]/20 text-[#00ff88] text-sm font-medium hover:bg-[#00ff88]/20 transition-colors">
+                      Save Changes
+                    </button>
                   </div>
                 </div>
               </GlassCard>
@@ -886,6 +1000,19 @@ const IRISZero: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <div className="absolute bottom-0 left-0 right-0 px-8 py-4 pointer-events-none">
+        <div className="max-w-7xl mx-auto flex items-center justify-between text-white/30 text-xs">
+          <span>IRIS-Zero v1.0.0 — Local AI Assistant</span>
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#00ff88]" />
+              All systems operational
+            </span>
+            <span>Privacy: 100% Local</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
