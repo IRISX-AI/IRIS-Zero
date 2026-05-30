@@ -1,11 +1,5 @@
-import IrisZero from "./IrisZero";
-
 const App = () => {
-  return (
-    <>
-      <IrisZero />
-    </>
-  );
+  return <div></div>;
 };
 
 export default App;
