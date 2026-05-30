@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import {
@@ -27,28 +27,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import * as THREE from "three";
-
-// ─── Types ───────────────────────────────────────────────────────────
-
-type VoiceState = "idle" | "listening" | "thinking" | "speaking" | "ready";
-type RecordingState = "idle" | "recording" | "processing" | "speaking";
-
-interface SystemStatus {
-  ollama: boolean;
-  tts: boolean;
-  modelName: string;
-  cpuUsage: number;
-  memoryUsage: number;
-}
-
-interface ExecutionTask {
-  id: string;
-  label: string;
-  status: "pending" | "running" | "completed" | "error";
-  progress?: number;
-}
-
-// ─── Utility Components ──────────────────────────────────────────────
+import {
+  ExecutionTask,
+  RecordingState,
+  SystemStatus,
+  VoiceState,
+} from "./types/type";
 
 const GlassCard: React.FC<{
   children: React.ReactNode;
