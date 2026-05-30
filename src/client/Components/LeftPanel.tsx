@@ -86,7 +86,7 @@ export const LeftPanel: React.FC<{
               Transcription
             </span>
           </div>
-          <div className="min-h-[3rem] flex items-center">
+          <div className="min-h-12 flex items-center">
             <p className="text-white/90 text-sm leading-relaxed font-light">
               {transcript ? (
                 words.map((word, i) => (
