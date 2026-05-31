@@ -16,8 +16,6 @@ export const StartMic = () => {
   mic.on("error", (err: any) => {
     console.error("Mic error:", err.message);
   });
-
-  return { mic, chunks };
 };
 
 export const stopMic = (handle: any) => {
