@@ -2,7 +2,6 @@ import { Microphone } from "decibri";
 import fs from "fs";
 import path from "path";
 
-// Helper to write WAV header for 16-bit mono PCM audio
 const writeWavHeader = (
   buffer: Buffer,
   sampleRate: number,
@@ -61,10 +60,8 @@ export const stopMic = (handle: { mic: Microphone; chunks: Buffer[] }) => {
   handle.mic.stop();
   const rawBuffer = Buffer.concat(handle.chunks);
 
-  // Convert raw PCM to a valid WAV file (16000 Hz, 1 channel, 16-bit depth)
   const wavBuffer = writeWavHeader(rawBuffer, 16000, 1, 16);
 
-  // Ensure the 'voice' directory exists in the application root directory
   const voiceDir = path.join(process.cwd(), "voice");
   if (!fs.existsSync(voiceDir)) {
     fs.mkdirSync(voiceDir, { recursive: true });
