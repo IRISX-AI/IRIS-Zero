@@ -1,7 +1,12 @@
-import { Decibri } from "decibri";
+import Decibri from "decibri";
 
 export const StartMic = () => {
-  const mic = new Decibri({ sampleRate: 16000, channels: 1, format: "int16" });
+  const mic = new Decibri({
+    sampleRate: 16000,
+    framesPerBuffer: 1600,
+    channels: 1,
+    format: "int16",
+  });
   const chunks: any[] = [];
 
   mic.on("data", (chunk: any) => {
