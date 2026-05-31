@@ -1,7 +1,7 @@
-import Decibri from "decibri";
+const { Microphone } = require("decibri");
 
 export const StartMic = () => {
-  const mic = new Decibri({
+  const mic = new Microphone({
     sampleRate: 16000,
     framesPerBuffer: 1600,
     channels: 1,
