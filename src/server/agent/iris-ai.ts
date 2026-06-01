@@ -1,5 +1,6 @@
 import { ChatOllama } from "@langchain/ollama";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { speak } from "../voice/iris-tts.js";
 
 const IrisAI = async ({
   prompt,
@@ -45,6 +46,8 @@ Core Instructions :-
       onToken?.(token);
     }
   }
+
+  speak(fullText);
 
   return fullText;
 };
