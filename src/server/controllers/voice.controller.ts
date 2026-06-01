@@ -79,7 +79,7 @@ export const VoiceStop = async (req: Request, res: Response) => {
     await ensureModel();
 
     const result = await whisper.transcribe({
-      pcmf32: float32,
+      pcmf32: float32, // ✅ in-memory, no disk I/O
       model: MODEL_PATH,
       language: "en",
       no_timestamps: true,
