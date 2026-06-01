@@ -19,7 +19,18 @@ const IRISZero: React.FC = () => {
   const [currentTask, setCurrentTask] = useState("");
   const [showSettings, setShowSettings] = useState(false);
 
-  const { startRecording, stopRecording } = useVoiceRecorder();
+  const { startRecording, stopRecording } = useVoiceRecorder(
+    (text) => setTranscript(text), // transcript arrives fast
+    (token) => setResponse((prev) => prev + token), // streams word by word
+    (stage) => {
+      if (stage === "transcribing") setVoiceState("thinking");
+      if (stage === "thinking") setVoiceState("speaking");
+    },
+    () => {
+      setVoiceState("ready");
+      setRecordingState("idle");
+    },
+  );
 
   const [systemStatus] = useState<SystemStatus>({
     ollama: true,
@@ -57,11 +68,9 @@ const IRISZero: React.FC = () => {
     if (recordingState === "recording") {
       setRecordingState("processing");
       setVoiceState("thinking");
-
+      setResponse(""); // clear previous response
       try {
-        const transcript = await stopRecording();
-        setTranscript(transcript);
-        await simulateProcessing();
+        await stopRecording();
       } catch (err) {
         console.error("Voice error:", err);
         setVoiceState("idle");
