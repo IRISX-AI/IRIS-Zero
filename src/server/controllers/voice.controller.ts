@@ -7,59 +7,55 @@ import https from "https";
 
 const sessions = new Map<string, ReturnType<typeof StartMic>>();
 
-// Helper function to download the model file following redirects
+const MODEL_PATH = path.resolve(process.cwd(), "ggml-tiny.en.bin");
+
+// ─── Model Download ────────────────────────────────────────────────────────────
+
 const downloadModel = (url: string, dest: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     https
       .get(url, (response) => {
         if (response.statusCode === 301 || response.statusCode === 302) {
           const redirectUrl = response.headers.location;
-          if (!redirectUrl) {
-            reject(
-              new Error(
-                `Redirect received from ${url} but no Location header found.`,
-              ),
-            );
-            return;
-          }
-          downloadModel(redirectUrl, dest).then(resolve).catch(reject);
-          return;
+          if (!redirectUrl)
+            return reject(new Error("Redirect with no Location header"));
+          return downloadModel(redirectUrl, dest).then(resolve).catch(reject);
         }
-
-        if (response.statusCode !== 200) {
-          reject(
-            new Error(
-              `Request to ${url} failed with status code ${response.statusCode}`,
-            ),
-          );
-          return;
-        }
+        if (response.statusCode !== 200)
+          return reject(new Error(`Download failed: ${response.statusCode}`));
 
         const file = fs.createWriteStream(dest);
         response.pipe(file);
-
         file.on("finish", () => {
           file.close();
           resolve();
         });
-
         file.on("error", (err) => {
-          file.close();
           fs.unlink(dest, () => {});
           reject(err);
         });
       })
-      .on("error", (err) => {
-        reject(err);
-      });
+      .on("error", reject);
   });
 };
+
+const ensureModel = async () => {
+  if (!fs.existsSync(MODEL_PATH)) {
+    console.log("📥 Downloading ggml-tiny.en.bin...");
+    await downloadModel(
+      "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin",
+      MODEL_PATH,
+    );
+    console.log("✅ Model ready");
+  }
+};
+
+// ─── Controllers ───────────────────────────────────────────────────────────────
 
 export const VoiceStart = async (req: Request, res: Response) => {
   try {
     const sessionId = Date.now().toString();
-    const handle = StartMic();
-    sessions.set(sessionId, handle);
+    sessions.set(sessionId, StartMic());
     res.json({ success: true, sessionId });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
@@ -72,7 +68,7 @@ export const VoiceStop = async (req: Request, res: Response) => {
     if (!sessionId)
       return res
         .status(400)
-        .json({ success: false, error: "sessionId is required" });
+        .json({ success: false, error: "sessionId required" });
 
     const handle = sessions.get(sessionId);
     if (!handle)
@@ -81,33 +77,28 @@ export const VoiceStop = async (req: Request, res: Response) => {
         .json({ success: false, error: "Session not found" });
 
     sessions.delete(sessionId);
-    const { filePath } = stopMic(handle);
 
-    // Resolve the absolute model path and download if it doesn't exist
-    const modelPath = path.resolve(process.cwd(), "ggml-tiny.en.bin");
-    if (!fs.existsSync(modelPath)) {
-      console.log(
-        `🎙️ Model file not found at ${modelPath}. Downloading ggml-tiny.en.bin from Hugging Face...`,
-      );
-      const downloadUrl =
-        "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin";
-      await downloadModel(downloadUrl, modelPath);
-      console.log("🎙️ Model downloaded successfully!");
-    }
+    // Stop mic → get float32 directly, no file written
+    const { float32 } = stopMic(handle);
+
+    await ensureModel();
 
     const result = await whisper.transcribe({
-      fname_inp: filePath,
-      model: modelPath,
-      language: "auto",
-      use_gpu: true,
+      pcmf32: float32, // ✅ in-memory, no disk I/O
+      model: MODEL_PATH,
+      language: "en",
+      no_timestamps: true,
     });
 
-    const text = Array.isArray(result)
-      ? result
-          .map((s: { text: string }) => s.text)
-          .join(" ")
-          .trim()
-      : String(result).trim();
+    // whisper returns nested arrays with pcmf32 mode
+    const text = result?.transcription
+      ? result.transcription.flat().join(" ").trim()
+      : Array.isArray(result)
+        ? result
+            .map((s: { text: string }) => s.text)
+            .join(" ")
+            .trim()
+        : String(result).trim();
 
     res.json({ success: true, transcript: text });
   } catch (error) {
