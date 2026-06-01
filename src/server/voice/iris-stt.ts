@@ -26,7 +26,7 @@ const writeWavHeader = (
   return Buffer.concat([header, buffer]);
 };
 
-export interface RecordAndTranscribeOptions {
+export interface IRIS_STT_Record_And_Transcribe_Options {
   durationMs?: number;
   model?: string;
   language?: string;
@@ -34,15 +34,15 @@ export interface RecordAndTranscribeOptions {
   keepFile?: boolean;
 }
 
-export interface TranscribeResult {
+export interface IRIS_STT_TranscribeResult {
   text: string;
   filePath: string;
   durationMs: number;
 }
 
-export const recordAndTranscribe = (
-  options: RecordAndTranscribeOptions = {},
-): Promise<TranscribeResult> => {
+export const IRIS_STT_Record_And_Transcribe = (
+  options: IRIS_STT_Record_And_Transcribe_Options = {},
+): Promise<IRIS_STT_TranscribeResult> => {
   const {
     durationMs = 5000,
     model = "ggml-tiny.en.bin",
