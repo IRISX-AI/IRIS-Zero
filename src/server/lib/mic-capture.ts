@@ -79,8 +79,3 @@ export const stopMic = (handle: { mic: Microphone; chunks: Buffer[] }) => {
     filename,
   };
 };
-
-const handle = StartMic();
-setTimeout(() => {
-  stopMic(handle);
-}, 5000);
