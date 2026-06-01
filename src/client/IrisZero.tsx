@@ -40,20 +40,6 @@ const IRISZero: React.FC = () => {
     memoryUsage: 42,
   });
 
-  const simulateProcessing = useCallback(async () => {
-    setVoiceState("speaking");
-    setRecordingState("speaking");
-    setCurrentTask("Project initialization");
-
-    setVoiceState("ready");
-    setRecordingState("idle");
-    setCurrentTask("Completed");
-
-    setVoiceState("idle");
-    setResponse("");
-    setCurrentTask("");
-  }, []);
-
   const handleHoldStart = async () => {
     if (recordingState === "idle" || recordingState === "speaking") {
       setVoiceState("listening");
