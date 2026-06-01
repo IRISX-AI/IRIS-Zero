@@ -24,3 +24,4 @@ dist-ssr
 .env
 ggml-tiny.en.bin
 model.ts
+iris-tts.ts
