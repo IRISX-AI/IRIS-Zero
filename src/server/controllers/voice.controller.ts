@@ -1,52 +1,9 @@
 import { Request, Response } from "express";
 import { StartMic, stopMic } from "../lib/mic-capture.js";
 import { transcribeInWorker } from "../logic/suppresslogs.js";
-import path from "path";
-import fs from "fs";
-import https from "https";
+import { ensureModel, MODEL_PATH } from "../lib/model.js";
 
 const sessions = new Map<string, ReturnType<typeof StartMic>>();
-
-const MODEL_PATH = path.resolve(process.cwd(), "ggml-tiny.en.bin");
-
-const downloadModel = (url: string, dest: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    https
-      .get(url, (response) => {
-        if (response.statusCode === 301 || response.statusCode === 302) {
-          const redirectUrl = response.headers.location;
-          if (!redirectUrl)
-            return reject(new Error("Redirect with no Location header"));
-          return downloadModel(redirectUrl, dest).then(resolve).catch(reject);
-        }
-        if (response.statusCode !== 200)
-          return reject(new Error(`Download failed: ${response.statusCode}`));
-
-        const file = fs.createWriteStream(dest);
-        response.pipe(file);
-        file.on("finish", () => {
-          file.close();
-          resolve();
-        });
-        file.on("error", (err) => {
-          fs.unlink(dest, () => {});
-          reject(err);
-        });
-      })
-      .on("error", reject);
-  });
-};
-
-const ensureModel = async () => {
-  if (!fs.existsSync(MODEL_PATH)) {
-    console.log("📥 Downloading ggml-tiny.en.bin...");
-    await downloadModel(
-      "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin",
-      MODEL_PATH,
-    );
-    console.log("✅ Model ready");
-  }
-};
 
 export const VoiceStart = async (req: Request, res: Response) => {
   try {
@@ -87,4 +44,3 @@ export const VoiceStop = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: String(error) });
   }
 };
-

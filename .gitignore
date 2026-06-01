@@ -23,3 +23,4 @@ dist-ssr
 
 .env
 ggml-tiny.en.bin
+model.ts
