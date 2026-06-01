@@ -35,10 +35,7 @@ const IRISZero: React.FC = () => {
     memoryUsage: 42,
   });
 
-  // Replace simulateProcessing — remove the transcript reset at the end
   const simulateProcessing = useCallback(async () => {
-    // ❌ removed: words simulation for transcript (real transcript is already set)
-
     await new Promise((r) => setTimeout(r, 1000));
     setVoiceState("speaking");
     setRecordingState("speaking");
@@ -77,7 +74,6 @@ const IRISZero: React.FC = () => {
 
     await new Promise((r) => setTimeout(r, 3000));
     setVoiceState("idle");
-    // ❌ removed: setTranscript("") — keep the transcript visible
     setResponse("");
     setTasks([]);
     setCurrentTask("");
@@ -94,7 +90,6 @@ const IRISZero: React.FC = () => {
     }
   };
 
-  // Replace handleHoldEnd
   const handleHoldEnd = async () => {
     if (recordingState === "recording") {
       setRecordingState("processing");
@@ -103,8 +98,7 @@ const IRISZero: React.FC = () => {
       try {
         const transcript = await stopRecording();
         setTranscript(transcript);
-        // Pass transcript to your LLM pipeline here
-        await simulateProcessing(); // swap this out with your real LLM call later
+        await simulateProcessing();
       } catch (err) {
         console.error("Voice error:", err);
         setVoiceState("idle");
