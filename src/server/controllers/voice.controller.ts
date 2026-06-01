@@ -74,13 +74,12 @@ export const VoiceStop = async (req: Request, res: Response) => {
 
     sessions.delete(sessionId);
 
-    // Stop mic → get float32 directly, no file written
     const { float32 } = stopMic(handle);
 
     await ensureModel();
 
     const result = await whisper.transcribe({
-      pcmf32: float32, // ✅ in-memory, no disk I/O
+      pcmf32: float32,
       model: MODEL_PATH,
       language: "en",
       no_timestamps: true,
