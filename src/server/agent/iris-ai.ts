@@ -20,8 +20,6 @@ const IrisAI = async ({
 Current runtime:
 - Date: ${new Date().toLocaleDateString()}
 - Time: ${new Date().toLocaleTimeString()}
-- Timestamp: ${Date.now()}
-- Platform: ${process.platform}
 
 IDENTITY:
 - Your name is IRIS Zero.
