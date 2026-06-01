@@ -9,6 +9,7 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@kutalia/whisper-node-addon": "^1.1.0",
     "@langchain/core": "^1.1.46",
     "@langchain/ollama": "^1.2.7",
     "@react-three/drei": "^10.7.7",
