@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { StartMic, stopMic } from "../lib/mic-capture.js";
-import whisper from "@kutalia/whisper-node-addon";
+import { transcribeInWorker } from "../logic/suppresslogs.js";
 import path from "path";
 import fs from "fs";
 import https from "https";
@@ -78,23 +78,7 @@ export const VoiceStop = async (req: Request, res: Response) => {
 
     await ensureModel();
 
-    const result = await whisper.transcribe({
-      pcmf32: float32, // ✅ in-memory, no disk I/O
-      model: MODEL_PATH,
-      language: "en",
-      no_timestamps: true,
-      no_prints: true,
-    });
-
-    // whisper returns nested arrays with pcmf32 mode
-    const text = result?.transcription
-      ? result.transcription.flat().join(" ").trim()
-      : Array.isArray(result)
-        ? result
-            .map((s: { text: string }) => s.text)
-            .join(" ")
-            .trim()
-        : String(result).trim();
+    const text = await transcribeInWorker(float32, MODEL_PATH);
 
     console.log(text);
 
@@ -103,3 +87,4 @@ export const VoiceStop = async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: String(error) });
   }
 };
+
