@@ -3,8 +3,6 @@ import whisper from "@kutalia/whisper-node-addon";
 import fs from "fs";
 import path from "path";
 
-// ─── WAV Header ───────────────────────────────────────────────────────────────
-
 const writeWavHeader = (
   buffer: Buffer,
   sampleRate: number,
@@ -28,8 +26,6 @@ const writeWavHeader = (
   return Buffer.concat([header, buffer]);
 };
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface RecordAndTranscribeOptions {
   durationMs?: number;
   model?: string;
@@ -44,8 +40,6 @@ export interface TranscribeResult {
   durationMs: number;
 }
 
-// ─── Core Function ────────────────────────────────────────────────────────────
-
 export const recordAndTranscribe = (
   options: RecordAndTranscribeOptions = {},
 ): Promise<TranscribeResult> => {
@@ -58,7 +52,6 @@ export const recordAndTranscribe = (
   } = options;
 
   return new Promise((resolve, reject) => {
-    // 1. Start mic
     const mic = new Microphone({
       sampleRate: 16000,
       framesPerBuffer: 1600,
@@ -76,7 +69,6 @@ export const recordAndTranscribe = (
 
     console.log(`🎙️  Recording for ${durationMs}ms...`);
 
-    // 2. Stop after duration → save WAV → transcribe
     setTimeout(async () => {
       try {
         // Stop & build WAV
