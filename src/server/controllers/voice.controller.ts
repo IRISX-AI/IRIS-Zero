@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { StartMic, stopMic } from "../lib/mic-capture.js";
 import { transcribeInWorker } from "../logic/suppresslogs.js";
 import { ensureModel, MODEL_PATH } from "../lib/model.js";
+import IrisAI from "../agent/iris-ai.js";
 
 const sessions = new Map<string, ReturnType<typeof StartMic>>();
 
@@ -36,6 +37,10 @@ export const VoiceStop = async (req: Request, res: Response) => {
     await ensureModel();
 
     const UserInputText = await transcribeInWorker(float32, MODEL_PATH);
+
+    const response = await IrisAI({
+      prompt: UserInputText,
+    });
 
     res.json({ success: true, transcript: UserInputText });
   } catch (error) {
