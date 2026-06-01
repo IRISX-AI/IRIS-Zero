@@ -1,6 +1,5 @@
 import { ChatOllama } from "@langchain/ollama";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import { speak } from "../voice/iris-tts.js";
 import { IrisSpeak } from "../voice/iris-speak.js";
 
 const IrisAI = async ({
