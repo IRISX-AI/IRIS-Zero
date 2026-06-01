@@ -35,14 +35,9 @@ const IRISZero: React.FC = () => {
     memoryUsage: 42,
   });
 
+  // Replace simulateProcessing — remove the transcript reset at the end
   const simulateProcessing = useCallback(async () => {
-    const words = "Create a Next.js project and install dependencies".split(
-      " ",
-    );
-    for (let i = 0; i < words.length; i++) {
-      await new Promise((r) => setTimeout(r, 150));
-      setTranscript((prev) => prev + (prev ? " " : "") + words[i]);
-    }
+    // ❌ removed: words simulation for transcript (real transcript is already set)
 
     await new Promise((r) => setTimeout(r, 1000));
     setVoiceState("speaking");
@@ -82,7 +77,7 @@ const IRISZero: React.FC = () => {
 
     await new Promise((r) => setTimeout(r, 3000));
     setVoiceState("idle");
-    setTranscript("");
+    // ❌ removed: setTranscript("") — keep the transcript visible
     setResponse("");
     setTasks([]);
     setCurrentTask("");
