@@ -16,12 +16,11 @@ const IRISZero: React.FC = () => {
   const [transcript, setTranscript] = useState("");
   const [response, setResponse] = useState("");
   const [isMuted, setIsMuted] = useState(false);
-  const [currentTask, setCurrentTask] = useState("");
   const [showSettings, setShowSettings] = useState(false);
 
   const { startRecording, stopRecording } = useVoiceRecorder(
-    (text) => setTranscript(text), // transcript arrives fast
-    (token) => setResponse((prev) => prev + token), // streams word by word
+    (text) => setTranscript(text),
+    (token) => setResponse((prev) => prev + token),
     (stage) => {
       if (stage === "transcribing") setVoiceState("thinking");
       if (stage === "thinking") setVoiceState("speaking");
@@ -92,10 +91,7 @@ const IRISZero: React.FC = () => {
         isActive={voiceState === "listening"}
       />
 
-      <RightPanel
-        currentTask={currentTask}
-        modelName={systemStatus.modelName}
-      />
+      <RightPanel modelName={systemStatus.modelName} />
 
       <Dock
         recordingState={recordingState}
@@ -134,17 +130,6 @@ const IRISZero: React.FC = () => {
                     <p className="text-white/80 text-base leading-relaxed font-light">
                       {response}
                     </p>
-
-                    {currentTask && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="mt-3 flex items-center gap-2 text-[#00ff88]/80 text-sm"
-                      >
-                        <Zap className="w-4 h-4" />
-                        {currentTask}
-                      </motion.div>
-                    )}
                   </motion.div>
                 </div>
               </GlassCard>
