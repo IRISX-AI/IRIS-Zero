@@ -22,7 +22,6 @@ const IRISZero: React.FC = () => {
   const [response, setResponse] = useState("");
   const [isMuted, setIsMuted] = useState(false);
   const [currentTask, setCurrentTask] = useState("");
-  const [tasks, setTasks] = useState<ExecutionTask[]>([]);
   const [showSettings, setShowSettings] = useState(false);
 
   const { startRecording, stopRecording } = useVoiceRecorder();
@@ -41,33 +40,6 @@ const IRISZero: React.FC = () => {
     setRecordingState("speaking");
     setCurrentTask("Project initialization");
 
-    const responseWords =
-      "Creating project... Installing dependencies... Ready.".split(" ");
-    for (let i = 0; i < responseWords.length; i++) {
-      await new Promise((r) => setTimeout(r, 150));
-      setResponse((prev) => prev + (prev ? " " : "") + responseWords[i]);
-    }
-
-    setTasks([
-      {
-        id: "1",
-        label: "Initialize Next.js project",
-        status: "completed",
-        progress: 100,
-      },
-      {
-        id: "2",
-        label: "Install dependencies",
-        status: "running",
-        progress: 65,
-      },
-      { id: "3", label: "Configure Tailwind CSS", status: "pending" },
-    ]);
-
-    await new Promise((r) => setTimeout(r, 2000));
-    setTasks((prev) =>
-      prev.map((t) => ({ ...t, status: "completed" as const, progress: 100 })),
-    );
     setVoiceState("ready");
     setRecordingState("idle");
     setCurrentTask("Completed");
@@ -75,7 +47,6 @@ const IRISZero: React.FC = () => {
     await new Promise((r) => setTimeout(r, 3000));
     setVoiceState("idle");
     setResponse("");
-    setTasks([]);
     setCurrentTask("");
   }, []);
 
@@ -85,7 +56,6 @@ const IRISZero: React.FC = () => {
       setRecordingState("recording");
       setTranscript("");
       setResponse("");
-      setTasks([]);
       await startRecording();
     }
   };
@@ -176,39 +146,7 @@ const IRISZero: React.FC = () => {
                     <p className="text-white/80 text-base leading-relaxed font-light">
                       {response}
                     </p>
-                    {tasks && tasks.length > 0 && (
-                      <div className="mt-4 space-y-2">
-                        {tasks.map((task) => (
-                          <motion.div
-                            key={task.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/5"
-                          >
-                            {task.status === "running" ? (
-                              <Loader2 className="w-4 h-4 text-[#00ff88] animate-spin" />
-                            ) : task.status === "completed" ? (
-                              <CheckCircle2 className="w-4 h-4 text-[#00ff88]" />
-                            ) : (
-                              <Circle className="w-4 h-4 text-white/30" />
-                            )}
-                            <span className="text-white/70 text-sm flex-1">
-                              {task.label}
-                            </span>
-                            {task.progress !== undefined && (
-                              <div className="w-20 h-1 bg-white/10 rounded-full overflow-hidden">
-                                <motion.div
-                                  className="h-full bg-[#00ff88] rounded-full"
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${task.progress}%` }}
-                                  transition={{ duration: 0.5 }}
-                                />
-                              </div>
-                            )}
-                          </motion.div>
-                        ))}
-                      </div>
-                    )}
+
                     {currentTask && (
                       <motion.div
                         initial={{ opacity: 0 }}
