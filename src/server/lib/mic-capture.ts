@@ -1,36 +1,4 @@
 import { Microphone } from "decibri";
-import fs from "fs";
-import path from "path";
-
-const writeWavHeader = (
-  buffer: Buffer,
-  sampleRate: number,
-  channels: number,
-  bitDepth: number,
-): Buffer => {
-  const header = Buffer.alloc(44);
-
-  // "RIFF" chunk descriptor
-  header.write("RIFF", 0);
-  header.writeUInt32LE(36 + buffer.length, 4);
-  header.write("WAVE", 8);
-
-  // "fmt " sub-chunk
-  header.write("fmt ", 12);
-  header.writeUInt32LE(16, 16); // subchunk1Size
-  header.writeUInt16LE(1, 20); // audioFormat (1 = PCM)
-  header.writeUInt16LE(channels, 22);
-  header.writeUInt32LE(sampleRate, 24);
-  header.writeUInt32LE(sampleRate * channels * (bitDepth / 8), 28); // byteRate
-  header.writeUInt16LE(channels * (bitDepth / 8), 32); // blockAlign
-  header.writeUInt16LE(bitDepth, 34); // bitsPerSample
-
-  // "data" sub-chunk
-  header.write("data", 36);
-  header.writeUInt32LE(buffer.length, 40);
-
-  return Buffer.concat([header, buffer]);
-};
 
 export const StartMic = () => {
   const mic = new Microphone({
@@ -41,41 +9,28 @@ export const StartMic = () => {
   });
   const chunks: Buffer[] = [];
 
-  mic.on("data", (chunk: Buffer) => {
-    chunks.push(chunk);
-  });
-
-  mic.on("error", (err: Error) => {
-    console.error("Mic error:", err.message);
-  });
+  mic.on("data", (chunk: Buffer) => chunks.push(chunk));
+  mic.on("error", (err: Error) => console.error("Mic error:", err.message));
 
   return { mic, chunks };
 };
 
 export const stopMic = (handle: { mic: Microphone; chunks: Buffer[] }) => {
-  if (!handle || !handle.mic) {
-    throw new Error("Invalid mic handle provided to stopMic");
-  }
+  if (!handle?.mic) throw new Error("Invalid mic handle");
 
   handle.mic.stop();
   const rawBuffer = Buffer.concat(handle.chunks);
 
-  const wavBuffer = writeWavHeader(rawBuffer, 16000, 1, 16);
-
-  const voiceDir = path.join(process.cwd(), "voice");
-  if (!fs.existsSync(voiceDir)) {
-    fs.mkdirSync(voiceDir, { recursive: true });
+  // PCM int16 → float32 (what whisper expects)
+  const int16 = new Int16Array(
+    rawBuffer.buffer,
+    rawBuffer.byteOffset,
+    rawBuffer.length / 2,
+  );
+  const float32 = new Float32Array(int16.length);
+  for (let i = 0; i < int16.length; i++) {
+    float32[i] = int16[i] / 32768;
   }
 
-  const filename = `recording_${Date.now()}.wav`;
-  const filePath = path.join(voiceDir, filename);
-
-  fs.writeFileSync(filePath, wavBuffer);
-  console.log(`Audio saved successfully to ${filePath}`);
-
-  return {
-    buffer: wavBuffer,
-    filePath,
-    filename,
-  };
+  return { float32 };
 };
