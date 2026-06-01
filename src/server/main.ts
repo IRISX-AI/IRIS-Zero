@@ -2,6 +2,7 @@ import express from "express";
 import ViteExpress from "vite-express";
 import AIRouter from "./router/ai.route.js";
 import VoiceRouter from "./router/voice.route.js";
+import { initTTS } from "./voice/iris-tts.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 4894;
@@ -12,7 +13,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/ai", AIRouter);
 app.use("/voice", VoiceRouter);
 
-ViteExpress.listen(app, port, () => {
+ViteExpress.listen(app, port, async () => {
   console.clear();
   console.log(`Server is running on http://localhost:${port}`);
+  await initTTS();
 });
