@@ -9,18 +9,9 @@ export const Dock: React.FC<{
   isMuted: boolean;
   onMuteToggle: () => void;
   onInterrupt: () => void;
-  onSettings: () => void;
   onHoldStart: () => void;
   onHoldEnd: () => void;
-}> = ({
-  recordingState,
-  isMuted,
-  onMuteToggle,
-  onInterrupt,
-  onSettings,
-  onHoldStart,
-  onHoldEnd,
-}) => {
+}> = ({ recordingState, onInterrupt, onHoldStart, onHoldEnd }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const isRecording = recordingState === "recording";
   const isProcessing = recordingState === "processing";
