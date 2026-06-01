@@ -17,33 +17,49 @@ export const VoiceStart = async (req: Request, res: Response) => {
 };
 
 export const VoiceStop = async (req: Request, res: Response) => {
+  // ─── SSE Setup ────────────────────────────────────────────────
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  const send = (event: string, data: object) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
   try {
     const { sessionId } = req.body;
-    if (!sessionId)
-      return res
-        .status(400)
-        .json({ success: false, error: "sessionId required" });
+    if (!sessionId) {
+      send("error", { message: "sessionId required" });
+      return res.end();
+    }
 
     const handle = sessions.get(sessionId);
-    if (!handle)
-      return res
-        .status(404)
-        .json({ success: false, error: "Session not found" });
+    if (!handle) {
+      send("error", { message: "Session not found" });
+      return res.end();
+    }
 
     sessions.delete(sessionId);
 
+    // 1. Transcribing
+    send("status", { stage: "transcribing" });
     const { float32 } = stopMic(handle);
-
     await ensureModel();
+    const userText = await transcribeInWorker(float32, MODEL_PATH);
+    send("transcript", { text: userText }); // ← UI shows this immediately
 
-    const UserInputText = await transcribeInWorker(float32, MODEL_PATH);
-
-    const response = await IrisAI({
-      prompt: UserInputText,
+    // 2. Thinking → stream tokens
+    send("status", { stage: "thinking" });
+    await IrisAI({
+      prompt: userText,
+      onToken: (token: string) => send("token", { token }), // ← each word as it arrives
     });
 
-    res.json({ success: true, transcript: UserInputText });
+    send("done", { success: true });
+    res.end();
   } catch (error) {
-    res.status(500).json({ success: false, error: String(error) });
+    send("error", { message: String(error) });
+    res.end();
   }
 };
