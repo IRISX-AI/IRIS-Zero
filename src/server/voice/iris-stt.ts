@@ -31,11 +31,11 @@ const writeWavHeader = (
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface RecordAndTranscribeOptions {
-  durationMs?: number; // how long to record (default: 5000ms)
-  model?: string; // whisper model (default: ggml-tiny.en.bin)
-  language?: string; // language hint (default: "auto")
-  useGpu?: boolean; // use GPU for inference (default: true)
-  keepFile?: boolean; // keep .wav file after transcription (default: false)
+  durationMs?: number;
+  model?: string;
+  language?: string;
+  useGpu?: boolean;
+  keepFile?: boolean;
 }
 
 export interface TranscribeResult {
