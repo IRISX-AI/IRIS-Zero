@@ -71,12 +71,10 @@ export const recordAndTranscribe = (
 
     setTimeout(async () => {
       try {
-        // Stop & build WAV
         mic.stop();
         const rawBuffer = Buffer.concat(chunks);
         const wavBuffer = writeWavHeader(rawBuffer, 16000, 1, 16);
 
-        // Save to disk (whisper needs a file path)
         const voiceDir = path.join(process.cwd(), "voice");
         if (!fs.existsSync(voiceDir))
           fs.mkdirSync(voiceDir, { recursive: true });
@@ -85,7 +83,6 @@ export const recordAndTranscribe = (
         fs.writeFileSync(filePath, wavBuffer);
         console.log(`💾  Saved: ${filePath}`);
 
-        // 3. Transcribe
         console.log("🔍  Transcribing...");
         const result = await whisper.transcribe({
           fname_inp: filePath,
@@ -94,7 +91,6 @@ export const recordAndTranscribe = (
           use_gpu: useGpu,
         });
 
-        // Extract plain text (whisper returns array of segments)
         const text = Array.isArray(result)
           ? result
               .map((s: { text: string }) => s.text)
@@ -102,7 +98,6 @@ export const recordAndTranscribe = (
               .trim()
           : String(result).trim();
 
-        // 4. Clean up unless caller wants the file
         if (!keepFile) fs.unlinkSync(filePath);
 
         resolve({ text, filePath, durationMs });
