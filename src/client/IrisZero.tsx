@@ -53,7 +53,7 @@ const IRISZero: React.FC = () => {
     if (recordingState === "recording") {
       setRecordingState("processing");
       setVoiceState("thinking");
-      setResponse(""); // clear previous response
+      setResponse("");
       try {
         await stopRecording();
       } catch (err) {
