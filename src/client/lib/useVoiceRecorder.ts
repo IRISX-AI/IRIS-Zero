@@ -4,7 +4,7 @@ export const useVoiceRecorder = () => {
   const sessionIdRef = useRef<string | null>(null);
 
   const startRecording = useCallback(async () => {
-    const res = await fetch("http://localhost:3001/voice/start", {
+    const res = await fetch("/voice/start", {
       method: "POST",
     });
     const data = await res.json();
@@ -12,7 +12,7 @@ export const useVoiceRecorder = () => {
   }, []);
 
   const stopRecording = useCallback(async (): Promise<string> => {
-    const res = await fetch("http://localhost:3001/voice/stop", {
+    const res = await fetch("/voice/stop", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sessionId: sessionIdRef.current }),
