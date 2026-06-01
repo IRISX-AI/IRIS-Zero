@@ -1,11 +1,10 @@
-import whisper from '@kutalia/whisper-node-addon'
+import whisper from "@kutalia/whisper-node-addon";
 
-// Transcribe audio
 const result = await whisper.transcribe({
-  fname_inp: 'audio.wav',
-  model: 'ggml-base.en.bin',
-  language: 'en',
-  use_gpu: true // Auto-detects Vulkan/Metal
+  fname_inp: "audio.wav",
+  model: "ggml-base.en.bin",
+  language: "en",
+  use_gpu: true,
 });
 
-console.log(result); 
+console.log(result);
