@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Brain, X } from "lucide-react";
+import { Brain, X } from "lucide-react";
 import { RecordingState, SystemStatus, VoiceState } from "./types/type";
 import { Header } from "./Components/Header";
 import { LeftPanel } from "./Components/LeftPanel";
