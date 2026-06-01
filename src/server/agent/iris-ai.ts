@@ -15,7 +15,7 @@ const IrisAI = async ({
   });
 
   const messages = [
-    new SystemMessage(`You are IRIS Zero — a private voice assistant running locally on Harsh's machine.
+    new SystemMessage(`You are IRIS Zero — a private voice assistant running locally on machine.
 
 Current runtime:
 - Date: ${new Date().toLocaleDateString()}
