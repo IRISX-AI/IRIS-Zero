@@ -35,16 +35,7 @@ const IRISZero: React.FC = () => {
     memoryUsage: 42,
   });
 
-  // Simulated transcription stream
   const simulateProcessing = useCallback(async () => {
-    const words = "Create a Next.js project and install dependencies".split(
-      " ",
-    );
-    for (let i = 0; i < words.length; i++) {
-      await new Promise((r) => setTimeout(r, 150));
-      setTranscript((prev) => prev + (prev ? " " : "") + words[i]);
-    }
-
     await new Promise((r) => setTimeout(r, 1000));
     setVoiceState("speaking");
     setRecordingState("speaking");
