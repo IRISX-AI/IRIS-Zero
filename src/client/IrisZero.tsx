@@ -103,7 +103,6 @@ const IRISZero: React.FC = () => {
           setTranscript("");
           setResponse("");
         }}
-        onSettings={() => setShowSettings(true)}
         onHoldStart={handleHoldStart}
         onHoldEnd={handleHoldEnd}
       />

@@ -1,15 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
-import {
-  Mic,
-  Square,
-  Loader2,
-  Volume2,
-  VolumeX,
-  X,
-  Settings,
-} from "lucide-react";
+import { Mic, Square, Loader2, X } from "lucide-react";
 import { RecordingState } from "../types/type";
 
 export const Dock: React.FC<{
@@ -17,18 +9,9 @@ export const Dock: React.FC<{
   isMuted: boolean;
   onMuteToggle: () => void;
   onInterrupt: () => void;
-  onSettings: () => void;
   onHoldStart: () => void;
   onHoldEnd: () => void;
-}> = ({
-  recordingState,
-  isMuted,
-  onMuteToggle,
-  onInterrupt,
-  onSettings,
-  onHoldStart,
-  onHoldEnd,
-}) => {
+}> = ({ recordingState, onInterrupt, onHoldStart, onHoldEnd }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const isRecording = recordingState === "recording";
   const isProcessing = recordingState === "processing";
@@ -64,30 +47,10 @@ export const Dock: React.FC<{
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={onMuteToggle}
-            className={`p-3.5 rounded-2xl border transition-all duration-300 ${isMuted ? "bg-red-500/10 border-red-500/30 text-red-400" : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10"}`}
-          >
-            {isMuted ? (
-              <VolumeX className="w-5 h-5" />
-            ) : (
-              <Volume2 className="w-5 h-5" />
-            )}
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
             onClick={onInterrupt}
             className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 transition-all duration-300"
           >
             <X className="w-5 h-5" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={onSettings}
-            className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 transition-all duration-300"
-          >
-            <Settings className="w-5 h-5" />
           </motion.button>
         </div>
 
