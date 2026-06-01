@@ -17,7 +17,6 @@ export const VoiceStart = async (req: Request, res: Response) => {
 };
 
 export const VoiceStop = async (req: Request, res: Response) => {
-  // ─── SSE Setup ────────────────────────────────────────────────
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
@@ -42,18 +41,16 @@ export const VoiceStop = async (req: Request, res: Response) => {
 
     sessions.delete(sessionId);
 
-    // 1. Transcribing
     send("status", { stage: "transcribing" });
     const { float32 } = stopMic(handle);
     await ensureModel();
     const userText = await transcribeInWorker(float32, MODEL_PATH);
-    send("transcript", { text: userText }); // ← UI shows this immediately
+    send("transcript", { text: userText });
 
-    // 2. Thinking → stream tokens
     send("status", { stage: "thinking" });
     await IrisAI({
       prompt: userText,
-      onToken: (token: string) => send("token", { token }), // ← each word as it arrives
+      onToken: (token: string) => send("token", { token }),
     });
 
     send("done", { success: true });
