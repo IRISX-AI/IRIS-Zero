@@ -35,7 +35,6 @@ const IRISZero: React.FC = () => {
   });
 
   const simulateProcessing = useCallback(async () => {
-    await new Promise((r) => setTimeout(r, 1000));
     setVoiceState("speaking");
     setRecordingState("speaking");
     setCurrentTask("Project initialization");
@@ -44,7 +43,6 @@ const IRISZero: React.FC = () => {
     setRecordingState("idle");
     setCurrentTask("Completed");
 
-    await new Promise((r) => setTimeout(r, 3000));
     setVoiceState("idle");
     setResponse("");
     setCurrentTask("");
