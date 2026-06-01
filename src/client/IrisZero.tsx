@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Brain, X } from "lucide-react";
+import { Brain, X } from "lucide-react";
 import { RecordingState, SystemStatus, VoiceState } from "./types/type";
 import { Header } from "./Components/Header";
 import { LeftPanel } from "./Components/LeftPanel";
@@ -16,10 +16,20 @@ const IRISZero: React.FC = () => {
   const [transcript, setTranscript] = useState("");
   const [response, setResponse] = useState("");
   const [isMuted, setIsMuted] = useState(false);
-  const [currentTask, setCurrentTask] = useState("");
   const [showSettings, setShowSettings] = useState(false);
 
-  const { startRecording, stopRecording } = useVoiceRecorder();
+  const { startRecording, stopRecording } = useVoiceRecorder(
+    (text) => setTranscript(text),
+    (token) => setResponse((prev) => prev + token),
+    (stage) => {
+      if (stage === "transcribing") setVoiceState("thinking");
+      if (stage === "thinking") setVoiceState("speaking");
+    },
+    () => {
+      setVoiceState("ready");
+      setRecordingState("idle");
+    },
+  );
 
   const [systemStatus] = useState<SystemStatus>({
     ollama: true,
@@ -28,20 +38,6 @@ const IRISZero: React.FC = () => {
     cpuUsage: 24,
     memoryUsage: 42,
   });
-
-  const simulateProcessing = useCallback(async () => {
-    setVoiceState("speaking");
-    setRecordingState("speaking");
-    setCurrentTask("Project initialization");
-
-    setVoiceState("ready");
-    setRecordingState("idle");
-    setCurrentTask("Completed");
-
-    setVoiceState("idle");
-    setResponse("");
-    setCurrentTask("");
-  }, []);
 
   const handleHoldStart = async () => {
     if (recordingState === "idle" || recordingState === "speaking") {
@@ -57,11 +53,9 @@ const IRISZero: React.FC = () => {
     if (recordingState === "recording") {
       setRecordingState("processing");
       setVoiceState("thinking");
-
+      setResponse("");
       try {
-        const transcript = await stopRecording();
-        setTranscript(transcript);
-        await simulateProcessing();
+        await stopRecording();
       } catch (err) {
         console.error("Voice error:", err);
         setVoiceState("idle");
@@ -97,10 +91,7 @@ const IRISZero: React.FC = () => {
         isActive={voiceState === "listening"}
       />
 
-      <RightPanel
-        currentTask={currentTask}
-        modelName={systemStatus.modelName}
-      />
+      <RightPanel modelName={systemStatus.modelName} />
 
       <Dock
         recordingState={recordingState}
@@ -139,17 +130,6 @@ const IRISZero: React.FC = () => {
                     <p className="text-white/80 text-base leading-relaxed font-light">
                       {response}
                     </p>
-
-                    {currentTask && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="mt-3 flex items-center gap-2 text-[#00ff88]/80 text-sm"
-                      >
-                        <Zap className="w-4 h-4" />
-                        {currentTask}
-                      </motion.div>
-                    )}
                   </motion.div>
                 </div>
               </GlassCard>
