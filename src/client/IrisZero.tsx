@@ -13,6 +13,7 @@ import { RightPanel } from "./Components/RightPanel";
 import { GlobeAI } from "./Components/NeuralGlobe";
 import { GlassCard } from "./Components/ui/GlassCard";
 import { Dock } from "./Components/Dock";
+import { useVoiceRecorder } from "./lib/useVoiceRecorder";
 
 const IRISZero: React.FC = () => {
   const [voiceState, setVoiceState] = useState<VoiceState>("idle");
@@ -23,6 +24,8 @@ const IRISZero: React.FC = () => {
   const [currentTask, setCurrentTask] = useState("");
   const [tasks, setTasks] = useState<ExecutionTask[]>([]);
   const [showSettings, setShowSettings] = useState(false);
+
+  const { startRecording, stopRecording } = useVoiceRecorder();
 
   const [systemStatus] = useState<SystemStatus>({
     ollama: true,
@@ -86,22 +89,33 @@ const IRISZero: React.FC = () => {
     setCurrentTask("");
   }, []);
 
-  // Strict Hold-to-Talk Handlers
-  const handleHoldStart = () => {
+  const handleHoldStart = async () => {
     if (recordingState === "idle" || recordingState === "speaking") {
       setVoiceState("listening");
       setRecordingState("recording");
       setTranscript("");
       setResponse("");
       setTasks([]);
+      await startRecording();
     }
   };
 
-  const handleHoldEnd = () => {
+  // Replace handleHoldEnd
+  const handleHoldEnd = async () => {
     if (recordingState === "recording") {
       setRecordingState("processing");
       setVoiceState("thinking");
-      simulateProcessing();
+
+      try {
+        const transcript = await stopRecording();
+        setTranscript(transcript);
+        // Pass transcript to your LLM pipeline here
+        await simulateProcessing(); // swap this out with your real LLM call later
+      } catch (err) {
+        console.error("Voice error:", err);
+        setVoiceState("idle");
+        setRecordingState("idle");
+      }
     }
   };
 
