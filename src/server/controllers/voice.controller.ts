@@ -83,6 +83,7 @@ export const VoiceStop = async (req: Request, res: Response) => {
       model: MODEL_PATH,
       language: "en",
       no_timestamps: true,
+      no_prints: true,
     });
 
     // whisper returns nested arrays with pcmf32 mode
