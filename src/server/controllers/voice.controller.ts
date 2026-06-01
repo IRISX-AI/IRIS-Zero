@@ -35,9 +35,9 @@ export const VoiceStop = async (req: Request, res: Response) => {
 
     await ensureModel();
 
-    const text = await transcribeInWorker(float32, MODEL_PATH);
+    const UserInputText = await transcribeInWorker(float32, MODEL_PATH);
 
-    res.json({ success: true, transcript: text });
+    res.json({ success: true, transcript: UserInputText });
   } catch (error) {
     res.status(500).json({ success: false, error: String(error) });
   }
