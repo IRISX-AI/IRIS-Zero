@@ -1,15 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
-import {
-  Mic,
-  Square,
-  Loader2,
-  Volume2,
-  VolumeX,
-  X,
-  Settings,
-} from "lucide-react";
+import { Mic, Square, Loader2, X } from "lucide-react";
 import { RecordingState } from "../types/type";
 
 export const Dock: React.FC<{
