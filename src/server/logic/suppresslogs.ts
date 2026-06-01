@@ -7,7 +7,6 @@ export const transcribeInWorker = (
   modelPath: string,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
-    // Determine path to worker file (.ts in development, .js in production/build)
     let workerPath = path.resolve(
       process.cwd(),
       "src/server/logic/whisper-worker.ts",
