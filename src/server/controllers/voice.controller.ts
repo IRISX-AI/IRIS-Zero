@@ -9,8 +9,6 @@ const sessions = new Map<string, ReturnType<typeof StartMic>>();
 
 const MODEL_PATH = path.resolve(process.cwd(), "ggml-tiny.en.bin");
 
-// ─── Model Download ────────────────────────────────────────────────────────────
-
 const downloadModel = (url: string, dest: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     https
@@ -49,8 +47,6 @@ const ensureModel = async () => {
     console.log("✅ Model ready");
   }
 };
-
-// ─── Controllers ───────────────────────────────────────────────────────────────
 
 export const VoiceStart = async (req: Request, res: Response) => {
   try {
