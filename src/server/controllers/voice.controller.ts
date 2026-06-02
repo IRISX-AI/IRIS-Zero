@@ -47,6 +47,12 @@ export const VoiceStop = async (req: Request, res: Response) => {
     const userText = await transcribeInWorker(float32, MODEL_PATH);
     send("transcript", { text: userText });
 
+    if (userText.includes("[BLANK_AUDIO]") || !userText.trim()) {
+      send("status", { stage: "idle" });
+      send("done", { success: true });
+      return res.end();
+    }
+
     send("status", { stage: "thinking" });
     await IrisAI({
       prompt: userText,
