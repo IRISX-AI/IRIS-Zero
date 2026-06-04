@@ -26,3 +26,4 @@ ggml-tiny.en.bin
 model.ts
 iris-tts.ts
 iris-speak.ts
+app-control.ts
