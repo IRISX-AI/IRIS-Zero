@@ -1,9 +1,31 @@
-import { tool } from "langchain";
-import { fetchInstalledApps, fetchStorageDrives, fetchSystemStats } from "../bin/system-info.js";
+import {
+  fetchInstalledApps,
+  fetchStorageDrives,
+  fetchSystemStats,
+} from "../bin/system-info.js";
 import { executeFSOperation } from "../bin/file-system.js";
 import { manageApp } from "../bin/app-control.js";
 
-export const systemToolDeclarations: tool[] = [
+export enum Type {
+  OBJECT = "object",
+  STRING = "string",
+  NUMBER = "number",
+  INTEGER = "integer",
+  BOOLEAN = "boolean",
+  ARRAY = "array",
+}
+
+export interface ToolDeclaration {
+  name: string;
+  description: string;
+  parameters: {
+    type: Type;
+    properties: Record<string, any>;
+    required?: string[];
+  };
+}
+
+export const systemToolDeclarations: ToolDeclaration[] = [
   {
     name: "get_system_stats",
     description:
