@@ -1,6 +1,8 @@
 import { ChatOllama } from "@langchain/ollama";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { IrisSpeak } from "../voice/iris-speak.js";
+import { createAgent, tool } from "langchain";
+import { systemToolDeclarations } from "../tools/tools.js";
 
 const IrisAI = async ({
   prompt,
@@ -11,7 +13,6 @@ const IrisAI = async ({
 }) => {
   const model = new ChatOllama({
     model: "qwen3:1.7b",
-    temperature: 0,
     think: false,
   });
 
@@ -32,6 +33,12 @@ Core Instructions :-
 `),
     new HumanMessage(prompt),
   ];
+
+  const agent = createAgent({
+    model: new ChatOpenAI({ model: "ollama:devstral-2" }),
+    tools: systemToolDeclarations
+    contextSchema,
+  });
 
   let fullText = "";
 

@@ -6,25 +6,6 @@ import {
 import { executeFSOperation } from "../bin/file-system.js";
 import { manageApp } from "../bin/app-control.js";
 
-export enum Type {
-  OBJECT = "object",
-  STRING = "string",
-  NUMBER = "number",
-  INTEGER = "integer",
-  BOOLEAN = "boolean",
-  ARRAY = "array",
-}
-
-export interface ToolDeclaration {
-  name: string;
-  description: string;
-  parameters: {
-    type: Type;
-    properties: Record<string, any>;
-    required?: string[];
-  };
-}
-
 export const systemToolDeclarations: ToolDeclaration[] = [
   {
     name: "get_system_stats",
