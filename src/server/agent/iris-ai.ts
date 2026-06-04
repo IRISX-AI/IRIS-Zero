@@ -12,7 +12,7 @@ const IrisAI = async ({
   onToken?: (token: string) => void;
 }) => {
   const model = new ChatOllama({
-    model: "qwen:2.5",
+    model: "qwen3:1.7b",
     temperature: 0,
     think: false,
   });
