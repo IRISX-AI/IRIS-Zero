@@ -12,7 +12,7 @@ const IrisAI = async ({
   onToken?: (token: string) => void;
 }) => {
   const model = new ChatOllama({
-    model: "qwen2.5",
+    model: "qwen3:1.7b",
     temperature: 0,
     think: false,
   });
@@ -47,7 +47,7 @@ Core Instructions :-
   for await (const [message] of stream) {
     const token = message.content as string;
     if (token) {
-      console.log(token)
+      console.log(token);
       fullText += token;
       onToken?.(token);
     }
