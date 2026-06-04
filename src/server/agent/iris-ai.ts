@@ -1,7 +1,7 @@
 import { ChatOllama } from "@langchain/ollama";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { IrisSpeak } from "../voice/iris-speak.js";
-import { createAgent, tool } from "langchain";
+import { createAgent } from "langchain";
 import { systemToolDeclarations } from "../tools/tools.js";
 
 const IrisAI = async ({
@@ -41,10 +41,7 @@ Core Instructions :-
 
   let fullText = "";
 
-  const stream = await agent.stream(
-    { messages },
-    { streamMode: "messages" }
-  );
+  const stream = await agent.stream({ messages }, { streamMode: "messages" });
 
   for await (const [message] of stream) {
     const token = message.content as string;
