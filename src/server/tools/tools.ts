@@ -5,78 +5,112 @@ import {
 } from "../bin/system-info.js";
 import { executeFSOperation } from "../bin/file-system.js";
 import { manageApp } from "../bin/app-control.js";
+import * as z from "zod";
+import { tool } from "langchain";
 
-export const systemToolDeclarations: ToolDeclaration[] = [
+export const getSystemStats = tool(
+  async () => {
+    return await fetchSystemStats();
+  },
   {
     name: "get_system_stats",
     description:
       "Retrieves real-time system telemetry including CPU usage, RAM usage, CPU temperature, and Network latency.",
-    parameters: { type: Type.OBJECT, properties: {} },
+    schema: z.object({}),
+  },
+);
+
+export const getInstalledApps = tool(
+  async () => {
+    return await fetchInstalledApps();
   },
   {
     name: "get_installed_apps",
     description:
       "Retrieves a list of all installed applications and software on the host machine.",
-    parameters: { type: Type.OBJECT, properties: {} },
+    schema: z.object({}),
+  },
+);
+
+export const getStorageDrives = tool(
+  async () => {
+    return await fetchStorageDrives();
   },
   {
     name: "get_storage_drives",
     description:
       "Retrieves information about the attached hard drives, including Total Space and Free Space in GB.",
-    parameters: { type: Type.OBJECT, properties: {} },
+    schema: z.object({}),
+  },
+);
+
+export const fileSystemOperation = tool(
+  async ({ action, targetPath, destPath, content }) => {
+    return await executeFSOperation(action, targetPath, destPath, content);
   },
   {
     name: "file_system_operation",
     description:
       "Performs a local file system operation. Use this to read, write, copy, move, delete, create directories, or list folder contents.",
-    parameters: {
-      type: Type.OBJECT,
-      properties: {
-        action: {
-          type: Type.STRING,
-          description:
-            'The specific operation to perform. MUST be one of: "read", "write", "append", "copy", "move", "delete", "mkdir", "list"',
-        },
-        targetPath: {
-          type: Type.STRING,
-          description:
-            'The primary file or directory path to act upon (e.g., "~/Documents/project" or "C:/data.txt").',
-        },
-        destPath: {
-          type: Type.STRING,
-          description:
-            'The destination path. ONLY required for "copy" and "move" actions.',
-        },
-        content: {
-          type: Type.STRING,
-          description:
-            'The text content to inject. ONLY required for "write" and "append" actions.',
-        },
-      },
-      required: ["action", "targetPath"],
-    },
+    schema: z.object({
+      action: z
+        .enum([
+          "read",
+          "write",
+          "append",
+          "copy",
+          "move",
+          "delete",
+          "mkdir",
+          "list",
+        ])
+        .describe("The specific operation to perform."),
+      targetPath: z
+        .string()
+        .describe(
+          'The primary file or directory path to act upon (e.g., "~/Documents/project" or "C:/data.txt").',
+        ),
+      destPath: z
+        .string()
+        .optional()
+        .describe(
+          'The destination path. ONLY required for "copy" and "move" actions.',
+        ),
+      content: z
+        .string()
+        .optional()
+        .describe(
+          'The text content to inject. ONLY required for "write" and "append" actions.',
+        ),
+    }),
+  },
+);
+
+export const manageApplication = tool(
+  async ({ action, appName }) => {
+    return await manageApp(action, appName);
   },
   {
     name: "manage_application",
     description:
       "Forcefully opens or completely terminates software applications running on the host machine across Windows, Mac, or Linux.",
-    parameters: {
-      type: Type.OBJECT,
-      properties: {
-        action: {
-          type: Type.STRING,
-          description:
-            'The action to perform. MUST be either "open" or "close".',
-        },
-        appName: {
-          type: Type.STRING,
-          description:
-            'The common or colloquial name of the app. Prefer clean names like "code", "chrome", "file manager", "spotify", "discord", "terminal", or "calculator". Do not append file extensions like .exe.',
-        },
-      },
-      required: ["action", "appName"],
-    },
+    schema: z.object({
+      action: z.enum(["open", "close"]).describe("The action to perform."),
+      appName: z
+        .string()
+        .describe(
+          'The common or colloquial name of the app. Prefer clean names like "code", "chrome", "file manager", "spotify", "discord", "terminal", or "calculator". Do not append file extensions like .exe.',
+        ),
+    }),
   },
+);
+
+export const systemToolDeclarations = [
+  getSystemStats,
+  getInstalledApps,
+  getStorageDrives,
+  fileSystemOperation,
+  manageApplication,
 ];
 
 export async function executeSystemTool(fc: any) {

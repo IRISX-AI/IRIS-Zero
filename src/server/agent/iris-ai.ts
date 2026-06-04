@@ -35,14 +35,13 @@ Core Instructions :-
   ];
 
   const agent = createAgent({
-    model: new ChatOpenAI({ model: "ollama:devstral-2" }),
-    tools: systemToolDeclarations
-    contextSchema,
+    model: model
+    tools: systemToolDeclarations,
   });
 
   let fullText = "";
 
-  const stream = await model.stream(messages);
+  const stream = await agent.invoke({ messages })
 
   for await (const chunk of stream) {
     const token = chunk.content as string;
