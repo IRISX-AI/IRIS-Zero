@@ -35,16 +35,19 @@ Core Instructions :-
   ];
 
   const agent = createAgent({
-    model: model
+    model: model,
     tools: systemToolDeclarations,
   });
 
   let fullText = "";
 
-  const stream = await agent.invoke({ messages })
+  const stream = await agent.stream(
+    { messages },
+    { streamMode: "messages" }
+  );
 
-  for await (const chunk of stream) {
-    const token = chunk.content as string;
+  for await (const [message] of stream) {
+    const token = message.content as string;
     if (token) {
       fullText += token;
       onToken?.(token);
