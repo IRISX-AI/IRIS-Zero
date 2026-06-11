@@ -18,8 +18,7 @@ const IrisAI = async ({
   });
 
   const messages = [
-    new SystemMessage(`You are IRIS Zero a private voice assistant
-      
+    new SystemMessage(`
 Core Instructions :-
 
 - Your name is IRIS Zero.
